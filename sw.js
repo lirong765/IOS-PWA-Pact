@@ -1,10 +1,10 @@
 /**
  * 契约 Pact — Service Worker
- * Cache-first strategy for app shell, network-first for data
- * Auto-update notification when new version detected
+ * Stale-while-revalidate: show cached version instantly, update in background.
+ * Next time you open the app, you get the latest code — no manual version bump needed.
  */
 
-const CACHE_NAME = 'pact-v3';
+const CACHE_NAME = 'pact-cache';
 const APP_SHELL = [
   '.',
   'index.html',
@@ -17,7 +17,6 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
   );
-  // Take over immediately (don't wait for old SW to release)
   self.skipWaiting();
 });
 
@@ -28,7 +27,6 @@ self.addEventListener('activate', (event) => {
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
-  // Take control of all clients immediately
   self.clients.claim();
 });
 
@@ -39,30 +37,29 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// ============ Fetch: Cache-first for shell, network-first for everything else ============
+// ============ Fetch: stale-while-revalidate for everything ============
+// Strategy: return cached copy immediately, fetch latest in background.
+// Next visit gets the updated version automatically.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Skip non-GET and non-http(s)
   if (event.request.method !== 'GET' || !url.protocol.startsWith('http')) return;
 
-  // APP_SHELL: cache-first
-  if (APP_SHELL.some((f) => url.pathname.endsWith(f))) {
-    event.respondWith(
-      caches.match(event.request).then((cached) => cached || fetch(event.request))
-    );
-    return;
-  }
-
-  // Everything else: network-first, fallback to cache
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Cache successful GET responses
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        return response;
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.match(event.request).then((cached) => {
+        // Fire background update
+        const fetched = fetch(event.request).then((response) => {
+          if (response.ok) {
+            cache.put(event.request, response.clone());
+          }
+          return response;
+        }).catch(() => cached);
+
+        // Return cached immediately, falling back to network
+        return cached || fetched;
       })
-      .catch(() => caches.match(event.request))
+    )
   );
 });
