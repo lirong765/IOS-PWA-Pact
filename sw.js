@@ -37,14 +37,17 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// ============ Fetch: stale-while-revalidate for everything ============
-// Strategy: return cached copy immediately, fetch latest in background.
-// Next visit gets the updated version automatically.
+// Track if we've already notified this session
+let updateNotified = false;
+
+// ============ Fetch: stale-while-revalidate + instant update notification ============
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Skip non-GET and non-http(s)
   if (event.request.method !== 'GET' || !url.protocol.startsWith('http')) return;
+
+  const isShell = APP_SHELL.some((f) => url.pathname.endsWith(f));
 
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
@@ -52,6 +55,22 @@ self.addEventListener('fetch', (event) => {
         // Fire background update
         const fetched = fetch(event.request).then((response) => {
           if (response.ok) {
+            // Compare with cached version for app shell files
+            if (isShell && cached && !updateNotified) {
+              response.clone().text().then((newText) => {
+                cached.text().then((oldText) => {
+                  if (newText !== oldText) {
+                    updateNotified = true;
+                    // Tell all open clients: content has been updated
+                    self.clients.matchAll().then((clients) => {
+                      clients.forEach((client) => {
+                        client.postMessage({ action: 'content-updated' });
+                      });
+                    });
+                  }
+                });
+              });
+            }
             cache.put(event.request, response.clone());
           }
           return response;

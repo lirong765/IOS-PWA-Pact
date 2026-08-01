@@ -998,6 +998,13 @@ const App = (() => {
       });
     });
 
+    // Listen for content-updated messages from SW (background fetch detected new version)
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.action === 'content-updated') {
+        _showUpdateBanner();
+      }
+    });
+
     // Also catch when controller changes (update applied)
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       window.location.reload();
@@ -1044,9 +1051,13 @@ const App = (() => {
   }
 
   function _applyUpdate() {
-    if (!_waitingSW) return;
-    _waitingSW.postMessage({ action: 'skipWaiting' });
-    // controllerchange event will fire and reload the page
+    if (_waitingSW) {
+      _waitingSW.postMessage({ action: 'skipWaiting' });
+      // controllerchange event will fire and reload the page
+    } else {
+      // Content-only update: just reload
+      window.location.reload();
+    }
   }
 
   // ============ Lightbox ============
