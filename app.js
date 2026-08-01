@@ -916,7 +916,10 @@ const App = (() => {
       </div>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="App.importData(event)">
       <div id="backup-msg" style="font-size:12px;margin-top:8px;text-align:center;"></div>
-      <div style="text-align:center;font-size:10px;color:#d1d5db;margin-top:8px">契约 v2.7</div>
+      <div style="text-align:center;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:12px">
+        <span style="font-size:10px;color:#d1d5db">契约 v2.7</span>
+        <button style="font-size:10px;background:none;border:1px solid var(--border);color:var(--text-secondary);padding:3px 10px;border-radius:10px;cursor:pointer;font-family:inherit" onclick="App.checkUpdate()">🔄 检查更新</button>
+      </div>
     `;
     container.insertBefore(panel, container.firstChild);
   }
@@ -1069,6 +1072,52 @@ const App = (() => {
     });
   }
 
+  function checkUpdate() {
+    if (!('serviceWorker' in navigator)) {
+      showToast('当前浏览器不支持');
+      return;
+    }
+
+    const msgEl = el('backup-msg');
+    if (msgEl) msgEl.innerHTML = '<span style="color:var(--text-secondary)">⏳ 正在检查更新...</span>';
+
+    navigator.serviceWorker.ready.then((reg) => {
+      // Reset the notification flag so SW will re-check
+      if (reg.waiting) {
+        _waitingSW = reg.waiting;
+        _showUpdateBanner();
+        if (msgEl) msgEl.innerHTML = '<span style="color:var(--accent)">🔄 发现新版本！</span>';
+        return;
+      }
+
+      // Check for SW script changes
+      return reg.update().then(() => {
+        // Give it a moment for the SW to install
+        setTimeout(() => {
+          if (reg.waiting) {
+            _waitingSW = reg.waiting;
+            _showUpdateBanner();
+            if (msgEl) msgEl.innerHTML = '<span style="color:var(--accent)">🔄 发现新版本！</span>';
+          } else if (reg.installing) {
+            reg.installing.addEventListener('statechange', function onState() {
+              if (this.state === 'installed') {
+                _waitingSW = this;
+                _showUpdateBanner();
+                if (msgEl) msgEl.innerHTML = '<span style="color:var(--accent)">🔄 发现新版本！</span>';
+              }
+            });
+          } else {
+            if (msgEl) msgEl.innerHTML = '<span style="color:var(--success)">✅ 已是最新版本</span>';
+            setTimeout(() => { if (msgEl) msgEl.innerHTML = ''; }, 2000);
+          }
+        }, 1000);
+      });
+    }).catch(() => {
+      if (msgEl) msgEl.innerHTML = '<span style="color:var(--danger)">❌ 检查失败，请检查网络</span>';
+      setTimeout(() => { if (msgEl) msgEl.innerHTML = ''; }, 2000);
+    });
+  }
+
   function _applyUpdate() {
     if (_waitingSW) {
       _waitingSW.postMessage({ action: 'skipWaiting' });
@@ -1165,6 +1214,7 @@ const App = (() => {
     importData,
     openLightbox,
     closeLightbox,
+    checkUpdate,
     init,
   };
 })();
