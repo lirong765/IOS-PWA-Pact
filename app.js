@@ -916,7 +916,7 @@ const App = (() => {
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="App.importData(event)">
       <div id="backup-msg" style="font-size:12px;margin-top:8px;text-align:center;"></div>
       <div style="text-align:center;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:12px">
-        <span style="font-size:10px;color:#d1d5db">契约 v2.8</span>
+        <span style="font-size:10px;color:#d1d5db">契约 v2.9</span>
         <button style="font-size:10px;background:none;border:1px solid var(--border);color:var(--text-secondary);padding:3px 10px;border-radius:10px;cursor:pointer;font-family:inherit" onclick="App.checkUpdate()">🔄 检查更新</button>
       </div>
     `;
