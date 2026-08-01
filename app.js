@@ -6,11 +6,12 @@
 const App = (() => {
   'use strict';
 
-  const APP_VERSION = '3.0';
+  const APP_VERSION = '3.1';
 
   // ============ State ============
   const GOALS_KEY = 'pact_goals';
   const CHECKINS_KEY = 'pact_checkins';
+  const COACH_KEY = 'pact_coach_msgs';
 
   let state = {
     currentTab: 'dashboard',
@@ -47,6 +48,26 @@ const App = (() => {
 
   function saveCheckins(checkins) {
     localStorage.setItem(CHECKINS_KEY, JSON.stringify(checkins));
+  }
+
+  function loadCoachMessages() {
+    try {
+      const raw = localStorage.getItem(COACH_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  }
+
+  function saveCoachMessages(msgs) {
+    // Keep last 50 messages max to avoid localStorage bloat
+    const trimmed = msgs.slice(-50);
+    localStorage.setItem(COACH_KEY, JSON.stringify(trimmed));
+  }
+
+  function clearCoachHistory() {
+    localStorage.removeItem(COACH_KEY);
+    state.coachMessages = [];
+    renderCoach();
+    showToast('🗑️ 对话已清除');
   }
 
   function getDefaultGoals() {
@@ -717,8 +738,15 @@ const App = (() => {
 
     const goals = loadGoals();
 
+    // Load saved messages on first render
     if (state.coachMessages.length === 0) {
-      state.coachMessages.push({ role: 'ai', text: generateGreeting(goals) });
+      const saved = loadCoachMessages();
+      if (saved.length > 0) {
+        state.coachMessages = saved;
+      } else {
+        state.coachMessages.push({ role: 'ai', text: generateGreeting(goals) });
+        saveCoachMessages(state.coachMessages);
+      }
     }
 
     const topHtml = buildTodayBanner(goals);
@@ -802,11 +830,13 @@ const App = (() => {
     input.value = '';
 
     state.coachMessages.push({ role: 'user', text: msg });
+    saveCoachMessages(state.coachMessages);
     renderCoach();
 
     setTimeout(() => {
       const reply = generateReply(msg);
       state.coachMessages.push({ role: 'ai', text: reply });
+      saveCoachMessages(state.coachMessages);
       renderCoach();
     }, 500 + Math.random() * 500);
   }
@@ -1201,6 +1231,7 @@ const App = (() => {
     openLightbox,
     closeLightbox,
     checkUpdate,
+    clearCoachHistory,
     init,
   };
 })();
