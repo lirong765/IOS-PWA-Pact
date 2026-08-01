@@ -897,7 +897,7 @@ const App = (() => {
       </div>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="App.importData(event)">
       <div id="backup-msg" style="font-size:12px;margin-top:8px;text-align:center;"></div>
-      <div style="text-align:center;font-size:10px;color:#d1d5db;margin-top:8px">契约 v2.4</div>
+      <div style="text-align:center;font-size:10px;color:#d1d5db;margin-top:8px">契约 v2.5</div>
     `;
     container.insertBefore(panel, container.firstChild);
   }
