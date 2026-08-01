@@ -30,10 +30,17 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// ============ Message: Listen for skip-waiting from client ============
+// ============ Message: Listen for commands from client ============
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
+  }
+  if (event.data && event.data.action === 'clearShellCache') {
+    caches.open(CACHE_NAME).then((cache) => {
+      APP_SHELL.forEach((file) => {
+        cache.delete(new Request(file));
+      });
+    });
   }
 });
 
@@ -48,6 +55,12 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || !url.protocol.startsWith('http')) return;
 
   const isShell = APP_SHELL.some((f) => url.pathname.endsWith(f));
+
+  // Cache-busted requests (e.g., check update): network-first, don't cache
+  if (url.searchParams.has('t')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
