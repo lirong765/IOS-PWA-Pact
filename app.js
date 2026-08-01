@@ -641,15 +641,40 @@ const App = (() => {
     showToast('🗑️ 已删除');
   }
 
+  function getMinDeadlineDays(targetDays, rule) {
+    switch (rule) {
+      case 'strict':
+        return targetDays; // No rest days: need exactly N days
+      case 'lenient':
+      case 'tiered':
+        // 2 rest days per week → 5 working days per week
+        // targetDays ÷ 5 × 7 = minimum deadline days
+        return Math.ceil(targetDays / 5 * 7);
+      default:
+        return targetDays;
+    }
+  }
+
   function createGoal() {
     const title = el('form-title').value.trim();
     const targetDays = parseInt(el('form-days').value) || 30;
     const deadlineDays = parseInt(el('form-deadline').value) || 60;
     const reward = el('form-reward').value.trim();
+    const rule = state.selectedRule;
+    const ruleLabel = rule === 'strict' ? '严格模式' : rule === 'lenient' ? '宽容模式' : '阶梯模式';
 
     if (!title) { showToast('请填写目标名称'); return; }
     if (!reward) { showToast('请填写奖励'); return; }
-    if (deadlineDays < targetDays) { showToast('有效期限不能少于目标天数'); return; }
+
+    const minDeadline = getMinDeadlineDays(targetDays, rule);
+    if (deadlineDays < minDeadline) {
+      if (rule === 'strict') {
+        showToast('有效期限不能少于目标天数');
+      } else {
+        showToast(`${ruleLabel}下，${targetDays}天目标至少需要${minDeadline}天期限（含每周休息日）`);
+      }
+      return;
+    }
 
     const goals = loadGoals();
     goals.unshift({
@@ -1038,17 +1063,30 @@ const App = (() => {
     // Form preview
     const daysInp = el('form-days');
     const deadlineInp = el('form-deadline');
+    const _updateFormPreview = () => {
+      const t = parseInt(daysInp.value) || 30;
+      let dl = parseInt(deadlineInp.value) || 60;
+      const minDl = getMinDeadlineDays(t, state.selectedRule);
+      if (dl < minDl) dl = minDl;
+      el('target-preview').textContent = t;
+      el('deadline-preview').textContent = dl;
+      el('pace-preview').textContent = Math.max(1, Math.round(dl / t));
+      // Show minimum hint based on rule
+      const hintEl = el('form-deadline-hint');
+      if (hintEl) {
+        if (state.selectedRule === 'strict') {
+          hintEl.textContent = `严格模式：每天都需要打卡，至少 ${t} 天`;
+        } else {
+          const restDays = minDl - t;
+          hintEl.textContent = `${state.selectedRule === 'lenient' ? '宽容' : '阶梯'}模式：含 ${restDays} 天休息日，至少 ${minDl} 天`;
+        }
+      }
+    };
     if (daysInp && deadlineInp) {
-      const updatePreview = () => {
-        const t = parseInt(daysInp.value) || 30;
-        let dl = parseInt(deadlineInp.value) || 60;
-        if (dl < t) dl = t;
-        el('target-preview').textContent = t;
-        el('deadline-preview').textContent = dl;
-        el('pace-preview').textContent = Math.max(1, Math.round(dl / t));
-      };
-      daysInp.addEventListener('input', updatePreview);
-      deadlineInp.addEventListener('input', updatePreview);
+      daysInp.addEventListener('input', _updateFormPreview);
+      deadlineInp.addEventListener('input', _updateFormPreview);
+      // Update preview when rule changes
+      qsa('.rule-option').forEach(el => el.addEventListener('click', _updateFormPreview));
     }
 
     // Initialize default data if first load
