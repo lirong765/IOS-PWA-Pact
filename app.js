@@ -156,6 +156,11 @@ const App = (() => {
     const modal = el('modal-' + modalName);
     if (modal) modal.classList.remove('show');
     state.activeModal = null;
+    if (modalName === 'create') {
+      _unhighlightTabButton('create');
+      // Restore the current tab highlight
+      _highlightTabButton(state.currentTab);
+    }
     if (modalName === 'detail' || modalName === 'create') {
       renderDashboard();
       renderRewards();
@@ -164,9 +169,21 @@ const App = (() => {
 
   function closeModalSilent() {
     if (state.activeModal) {
+      if (state.activeModal === 'create') _unhighlightTabButton('create');
       el('modal-' + state.activeModal).classList.remove('show');
       state.activeModal = null;
     }
+  }
+
+  function _highlightTabButton(tab) {
+    qsa('#global-tab-bar .tab-item').forEach(b => b.classList.remove('active'));
+    const btn = qs(`#global-tab-bar .tab-item[data-tab="${tab}"]`);
+    if (btn) btn.classList.add('active');
+  }
+
+  function _unhighlightTabButton(tab) {
+    const btn = qs(`#global-tab-bar .tab-item[data-tab="${tab}"]`);
+    if (btn) btn.classList.remove('active');
   }
 
   // ============ Template Helpers ============
@@ -491,8 +508,9 @@ const App = (() => {
 
   // ============ Create Goal ============
   function openCreateModal() {
-    resetCreateForm();
+    // Don't reset if form already has content — preserve user's work
     openModal('create');
+    _highlightTabButton('create');
   }
 
   function resetCreateForm() {
@@ -687,6 +705,7 @@ const App = (() => {
     saveGoals(goals);
 
     showToast('📝 契约已立下！');
+    resetCreateForm();
     closeModal('create');
   }
 
@@ -897,7 +916,7 @@ const App = (() => {
       </div>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="App.importData(event)">
       <div id="backup-msg" style="font-size:12px;margin-top:8px;text-align:center;"></div>
-      <div style="text-align:center;font-size:10px;color:#d1d5db;margin-top:8px">契约 v2.6</div>
+      <div style="text-align:center;font-size:10px;color:#d1d5db;margin-top:8px">契约 v2.7</div>
     `;
     container.insertBefore(panel, container.firstChild);
   }
