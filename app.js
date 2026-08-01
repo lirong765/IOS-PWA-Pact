@@ -191,7 +191,7 @@ const App = (() => {
   // Render reward image: real photo or emoji placeholder
   function rewardImgHtml(goal, size) {
     if (goal.photoData) {
-      return `<img src="${goal.photoData}" alt="${goal.reward}" style="width:100%;height:100%;object-fit:cover;border-radius:${size > 100 ? '16px' : '0'};">`;
+      return `<img src="${goal.photoData}" alt="${goal.reward}" data-lightbox onclick="event.stopPropagation();App.openLightbox('${goal.photoData}')" style="width:100%;height:100%;object-fit:cover;border-radius:${size > 100 ? '16px' : '0'};">`;
     }
     return goal.rewardEmoji || '🎁';
   }
@@ -241,7 +241,7 @@ const App = (() => {
     <div class="card goal-card" style="${opacity}" onclick="App.openDetailModal('${goal.id}')">
       <div class="goal-header">
         <div style="display:flex;gap:12px;flex:1;min-width:0">
-          ${goal.photoData ? `<div style="width:48px;height:48px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#f3f4f6"><img src="${goal.photoData}" style="width:100%;height:100%;object-fit:cover" alt=""></div>` : ''}
+          ${goal.photoData ? `<div style="width:48px;height:48px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#f3f4f6"><img src="${goal.photoData}" style="width:100%;height:100%;object-fit:cover" alt="" data-lightbox onclick="event.stopPropagation();App.openLightbox('${goal.photoData}')"></div>` : ''}
           <div style="flex:1;min-width:0">
             <div class="goal-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${goal.title}</div>
             <div class="goal-reward" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🎁 ${goal.reward}</div>
@@ -407,7 +407,7 @@ const App = (() => {
         <div class="celebration-emoji">🎉</div>
         <div class="celebration-title">你做到了！</div>
         <div class="celebration-desc">在 ${goal.deadlineDays} 天期限内完成了 ${goal.completedDays} 天打卡<br>你可以兑现奖励了</div>
-        <div class="reward-img-placeholder" style="${goal.photoData ? 'background:none;overflow:hidden;width:240px;height:240px' : ''}">${rewardImgHtml(goal, 240)}</div>
+        <div class="reward-img-placeholder" style="${goal.photoData ? 'background:none;overflow:hidden;width:240px;height:240px;cursor:pointer' : ''}">${rewardImgHtml(goal, 240)}</div>
         ${goal.photoData ? `<div style="text-align:center;margin-top:6px;display:flex;gap:8px;justify-content:center"><input type="file" id="replace-photo-${goal.id}" accept="image/*" style="display:none" onchange="App.replaceGoalPhoto(event,'${goal.id}')"><button style="border:none;background:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit" onclick="document.getElementById('replace-photo-${goal.id}').click()">🔄 更换照片</button><button style="border:none;background:none;color:var(--danger);font-size:12px;cursor:pointer;font-family:inherit" onclick="App.removeGoalPhoto('${goal.id}')">移除照片</button></div>` : ''}
         <div style="font-size:18px;font-weight:700">${goal.reward}</div>
         <div class="text-sm text-secondary mt-8">解锁日期：${goal.unlockDate || '刚刚'} · ${ruleLabel}</div>
@@ -423,7 +423,7 @@ const App = (() => {
       </div>
       <div class="card">
         <div class="flex-between" style="margin-bottom:10px"><div class="section-title" style="margin:0">🎁 奖励</div><span class="text-xs" style="color:#9ca3af">已失效</span></div>
-        <div style="font-size:28px;text-align:center;margin:8px 0;opacity:0.5">${goal.photoData ? `<img src="${goal.photoData}" style="max-width:240px;max-height:240px;border-radius:12px;opacity:0.5" alt="${goal.reward}">` : goal.rewardEmoji || '🎁'}</div>
+        <div style="font-size:28px;text-align:center;margin:8px 0;opacity:0.5">${goal.photoData ? `<img src="${goal.photoData}" style="max-width:240px;max-height:240px;border-radius:12px;opacity:0.5;cursor:pointer" data-lightbox onclick="event.stopPropagation();App.openLightbox('${goal.photoData}')" alt="${goal.reward}">` : goal.rewardEmoji || '🎁'}</div>
         <div style="font-size:15px;font-weight:600;text-align:center;opacity:0.5">${goal.reward}</div>
         ${goal.photoData ? `<div style="text-align:center;margin-top:6px;display:flex;gap:8px;justify-content:center"><input type="file" id="replace-photo-${goal.id}" accept="image/*" style="display:none" onchange="App.replaceGoalPhoto(event,'${goal.id}')"><button style="border:none;background:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit" onclick="document.getElementById('replace-photo-${goal.id}').click()">🔄 更换照片</button><button style="border:none;background:none;color:var(--danger);font-size:12px;cursor:pointer;font-family:inherit" onclick="App.removeGoalPhoto('${goal.id}')">移除照片</button></div>` : ''}
         <button class="btn-primary" style="margin-top:12px;background:var(--danger)" onclick="App.deleteGoal('${goal.id}')">🗑️ 删除此契约</button>
@@ -454,7 +454,7 @@ const App = (() => {
       </div>
       <div class="card">
         <div class="flex-between" style="margin-bottom:10px"><div class="section-title" style="margin:0">🎁 奖励</div><span class="text-xs" style="color:var(--danger)">🔒 创建后锁定</span></div>
-        <div style="font-size:28px;text-align:center;margin:8px 0">${goal.photoData ? `<img src="${goal.photoData}" style="max-width:240px;max-height:240px;border-radius:12px" alt="${goal.reward}">` : goal.rewardEmoji || '🎁'}</div>
+        <div style="font-size:28px;text-align:center;margin:8px 0">${goal.photoData ? `<img src="${goal.photoData}" style="max-width:240px;max-height:240px;border-radius:12px;cursor:pointer" data-lightbox onclick="event.stopPropagation();App.openLightbox('${goal.photoData}')" alt="${goal.reward}">` : goal.rewardEmoji || '🎁'}</div>
         <div style="font-size:15px;font-weight:600;text-align:center">${goal.reward}</div>
         ${goal.photoData ? `<div style="text-align:center;margin-top:6px;display:flex;gap:8px;justify-content:center"><input type="file" id="replace-photo-${goal.id}" accept="image/*" style="display:none" onchange="App.replaceGoalPhoto(event,'${goal.id}')"><button style="border:none;background:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit" onclick="document.getElementById('replace-photo-${goal.id}').click()">🔄 更换照片</button><button style="border:none;background:none;color:var(--danger);font-size:12px;cursor:pointer;font-family:inherit" onclick="App.removeGoalPhoto('${goal.id}')">移除照片</button></div>` : ''}
         <button class="btn-primary" style="margin-top:16px;background:var(--danger)" onclick="App.deleteGoal('${goal.id}')">🗑️ 删除此契约</button>
@@ -552,7 +552,7 @@ const App = (() => {
         const upload = el('photo-upload');
         upload.classList.add('has-photo');
         upload.innerHTML = `
-          <img src="${state.photoData}" alt="奖励照片预览">
+          <img src="${state.photoData}" alt="奖励照片预览" data-lightbox onclick="event.stopPropagation();App.openLightbox('${state.photoData}')">
           <button class="photo-remove" onclick="event.stopPropagation();App.removePhoto()">✕</button>
         `;
       };
@@ -897,7 +897,7 @@ const App = (() => {
       </div>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="App.importData(event)">
       <div id="backup-msg" style="font-size:12px;margin-top:8px;text-align:center;"></div>
-      <div style="text-align:center;font-size:10px;color:#d1d5db;margin-top:8px">契约 v2.5</div>
+      <div style="text-align:center;font-size:10px;color:#d1d5db;margin-top:8px">契约 v2.6</div>
     `;
     container.insertBefore(panel, container.firstChild);
   }
@@ -1049,6 +1049,18 @@ const App = (() => {
     // controllerchange event will fire and reload the page
   }
 
+  // ============ Lightbox ============
+  function openLightbox(src) {
+    if (!src) return;
+    el('lightbox-img').src = src;
+    el('lightbox').classList.add('show');
+  }
+
+  function closeLightbox() {
+    el('lightbox').classList.remove('show');
+    setTimeout(() => { el('lightbox-img').src = ''; }, 300);
+  }
+
   // ============ Utilities ============
   function showToast(msg) {
     const toast = el('toast');
@@ -1121,6 +1133,8 @@ const App = (() => {
     toggleBackup,
     exportData,
     importData,
+    openLightbox,
+    closeLightbox,
     init,
   };
 })();

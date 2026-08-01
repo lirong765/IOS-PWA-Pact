@@ -628,6 +628,50 @@
   @media (display-mode: standalone) {
     .install-banner { display:none !important; }
   }
+
+  /* ===== Lightbox ===== */
+  .lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .lightbox-overlay.show { opacity:1; pointer-events:auto; }
+  .lightbox-overlay img {
+    max-width: 95vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px;
+    cursor: default;
+  }
+  .lightbox-close {
+    position: absolute;
+    top: max(16px, env(safe-area-inset-top, 0px));
+    right: 16px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+  /* Make photos feel clickable */
+  img[data-lightbox] {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
 </style>
 </head>
 <body>
@@ -786,6 +830,12 @@
   <button class="tab-item" data-tab="ai-coach" onclick="App.switchTab('ai-coach')">
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 3.5c2.1 4 2.1 8.5 0 12.5"/><path d="M14.5 3.5c-2.1 4-2.1 8.5 0 12.5"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="3.5" y1="14.5" x2="20.5" y2="14.5"/></svg></span> AI 教练
   </button>
+</div>
+
+<!-- ========== Lightbox ========== -->
+<div class="lightbox-overlay" id="lightbox" onclick="App.closeLightbox()">
+  <button class="lightbox-close" onclick="App.closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
 </div>
 
 <script src="app.js"></script>
