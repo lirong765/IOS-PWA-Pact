@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="契约">
-<meta name="theme-color" content="#f2f1fa">
+<meta name="theme-color" content="#f3f2fa">
 <meta name="description" content="契约 Pact — 设定目标，绑定奖励，完成了才能兑现。">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>📝</text></svg>">
@@ -41,12 +41,7 @@
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
   html {
-    background:
-      radial-gradient(50% 40% at 20% 12%, rgba(167,139,250,0.10), transparent 60%),
-      radial-gradient(42% 35% at 82% 18%, rgba(96,165,250,0.09), transparent 60%),
-      radial-gradient(45% 38% at 50% 100%, rgba(244,164,205,0.08), transparent 65%),
-      #f8f7fc;
-    background-attachment: fixed;
+    background: #f3f2fa;
   }
   html, body {
     height: 100%;
@@ -55,14 +50,23 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Fixed full-screen gradient layer — large overlapping glows blend into one continuous field */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(140% 110% at 12% 0%, rgba(167,139,250,0.14), transparent 55%),
+      radial-gradient(120% 100% at 100% 8%, rgba(96,165,250,0.12), transparent 55%),
+      radial-gradient(150% 120% at 50% 100%, rgba(244,164,205,0.13), transparent 60%),
+      linear-gradient(180deg, #f3f2fa 0%, #f8f7fc 45%, #f5f3fb 100%);
+  }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-    background:
-      radial-gradient(50% 40% at 20% 12%, rgba(167,139,250,0.10), transparent 60%),
-      radial-gradient(42% 35% at 82% 18%, rgba(96,165,250,0.09), transparent 60%),
-      radial-gradient(45% 38% at 50% 100%, rgba(244,164,205,0.08), transparent 65%),
-      #f8f7fc;
-    background-attachment: fixed;
+    background: transparent;
     color: var(--text);
     display: flex;
     flex-direction: column;
