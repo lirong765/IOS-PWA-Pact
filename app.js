@@ -6,7 +6,7 @@
 const App = (() => {
   'use strict';
 
-  const APP_VERSION = '3.1.1';
+  const APP_VERSION = '3.1.2';
 
   // ============ State ============
   const GOALS_KEY = 'pact_goals';
