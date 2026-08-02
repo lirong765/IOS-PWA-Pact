@@ -41,7 +41,12 @@
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
   html {
-    background: #f6f7f9;
+    background:
+      radial-gradient(50% 40% at 20% 12%, rgba(167,139,250,0.10), transparent 60%),
+      radial-gradient(42% 35% at 82% 18%, rgba(96,165,250,0.09), transparent 60%),
+      radial-gradient(45% 38% at 50% 100%, rgba(244,164,205,0.08), transparent 65%),
+      #f8f7fc;
+    background-attachment: fixed;
   }
   html, body {
     height: 100%;
